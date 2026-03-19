@@ -21,6 +21,9 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* Force ♥ to always render as text glyph, never emoji (fixes iOS/Apple) */
+  body { font-variant-emoji: text; }
   html { scroll-behavior: smooth; }
   body {
     font-family: 'Montserrat', sans-serif;
@@ -39,49 +42,6 @@
     border-bottom: 1px solid var(--border);
     transition: box-shadow 0.3s;
   }
-
-  /* 1. Hide Hamburger by default (on Desktop) */
-.hamburger {
-  display: none;
-  cursor: pointer;
-  flex-direction: column;
-  gap: 5px;
-  z-index: 100;
-}
-
-.hamburger span {
-  width: 25px;
-  height: 3px;
-  background-color: var(--pink);
-  border-radius: 2px;
-  transition: 0.3s;
-}
-
-/* 2. Mobile View (Screen width less than 768px) */
-@media (max-width: 768px) {
-  .hamburger {
-    display: flex; /* Show hamburger */
-  }
-
-  .nav-links {
-    display: none; /* Hide original links */
-    position: absolute;
-    top: 70px;
-    right: 20px;
-    background: white;
-    width: 200px;
-    flex-direction: column;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    border: 1px solid var(--border);
-  }
-
-  /* When we add the 'active' class via JS, show the menu */
-  .nav-links.active {
-    display: flex;
-  }
-}
 
   .nav-logo { text-decoration: none; display: flex; align-items: center; gap: 2px; }
 
@@ -121,6 +81,79 @@
   }
 
   .nav-cta:hover { background: var(--pink-dark) !important; transform: translateY(-1px); }
+
+  /* ── HAMBURGER ── */
+  .nav-hamburger {
+    display: none;
+    flex-direction: column; justify-content: center; gap: 5px;
+    width: 40px; height: 40px;
+    background: none; border: none; cursor: pointer;
+    padding: 6px; border-radius: 8px;
+    transition: background 0.2s;
+  }
+
+  .nav-hamburger:hover { background: var(--pink-pale); }
+
+  .nav-hamburger span {
+    display: block; width: 24px; height: 2px;
+    background: var(--black); border-radius: 2px;
+    transition: all 0.3s ease;
+    transform-origin: center;
+  }
+
+  /* X state when open */
+  .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .nav-hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* ── MOBILE DRAWER ── */
+  .nav-drawer {
+    display: none;
+    position: fixed; top: 62px; left: 0; right: 0;
+    background: rgba(255,255,255,0.98);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    z-index: 99;
+    padding: 0 24px;
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.4s ease, padding 0.3s ease;
+  }
+
+  .nav-drawer.open {
+    max-height: 400px;
+    padding: 20px 24px 28px;
+  }
+
+  .nav-drawer ul {
+    list-style: none;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+
+  .nav-drawer ul a {
+    display: block;
+    text-decoration: none;
+    font-size: 15px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--dark);
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(248,77,140,0.08);
+    transition: color 0.2s, padding-left 0.2s;
+  }
+
+  .nav-drawer ul a:hover { color: var(--pink); padding-left: 8px; }
+
+  .nav-drawer .drawer-cta {
+    display: block; margin-top: 16px;
+    background: var(--pink); color: white;
+    padding: 14px; border-radius: 50px;
+    text-align: center; text-decoration: none;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    box-shadow: 0 4px 16px rgba(248,77,140,0.3);
+    transition: background 0.2s;
+  }
+
+  .nav-drawer .drawer-cta:hover { background: var(--pink-dark); }
 
   /* ── HERO ── */
   .hero {
@@ -223,6 +256,7 @@
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 32px 80px rgba(248,77,140,0.25);
     overflow: hidden; position: relative;
+    z-index: 1;
   }
 
   /* Café background photo */
@@ -234,9 +268,8 @@
 
   .hero-card-main:hover .hero-card-photo { transform: scale(1.04); }
 
-  /* Pink tinted overlay so SVG art still reads well */
-  .hero-card-main::before {
-    content: '';
+  /* Pink tinted overlay as a real element to avoid stacking context issues */
+  .hero-card-overlay {
     position: absolute; inset: 0; z-index: 1;
     background: linear-gradient(
       160deg,
@@ -244,6 +277,7 @@
       rgba(248,77,140,0.35) 40%,
       rgba(200,60,110,0.55) 100%
     );
+    pointer-events: none;
   }
 
   .hero-coffee-art {
@@ -268,14 +302,13 @@
     align-items: center; justify-content: center;
     box-shadow: 0 8px 24px rgba(248,77,140,0.4);
     border: 4px solid white;
-    z-index: 10;
+    z-index: 20;
   }
 
   .hero-badge-text {
     font-family: 'Dancing Script', cursive;
     font-size: 13px; color: white;
     text-align: center; line-height: 1.3; font-weight: 700;
-
   }
 
   .hero-float {
@@ -284,7 +317,7 @@
     padding: 18px 22px;
     box-shadow: 0 16px 48px rgba(0,0,0,0.1);
     min-width: 170px; border: 1px solid var(--border);
-    z-index: 10;
+    z-index: 20;
   }
 
   .float-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid); margin-bottom: 4px; }
@@ -387,10 +420,12 @@
   }
 
   .menu-section::before {
-    content: '♥';
-    position: absolute; top: -40px; right: 40px;
-    font-size: 320px; color: rgba(248,77,140,0.04);
-    pointer-events: none; line-height: 1;
+    content: '';
+    position: absolute; top: -60px; right: 20px;
+    width: 320px; height: 320px;
+    background: rgba(248,77,140,0.04);
+    clip-path: path('M160,60 C160,25 120,0 80,0 C35,0 0,35 0,80 C0,120 30,155 80,190 C110,210 140,230 160,250 C180,230 210,210 240,190 C290,155 320,120 320,80 C320,35 285,0 240,0 C200,0 160,25 160,60 Z');
+    pointer-events: none;
   }
 
   .menu-header { text-align: center; margin-bottom: 60px; }
@@ -778,6 +813,8 @@
   @media (max-width: 768px) {
     nav { padding: 12px 20px; }
     .nav-links { display: none; }
+    .nav-hamburger { display: flex; }
+    .nav-drawer { display: block; }
     .hero-left { padding: 100px 24px 60px; }
     .about, .menu-section, .specials, .tiktok-section, .visit-section { padding: 60px 24px; }
     .specials-grid { grid-template-columns: 1fr; }
@@ -798,14 +835,7 @@
     <span class="logo-shimmer">Shimmer</span>
     <span class="logo-cafe">CAFÉ</span>
   </a>
-
-  <div class="hamburger" id="hamburger">
-    <span></span>
-    <span></span>
-    <span></span>
-  </div>
-
-  <ul class="nav-links" id="nav-links">
+  <ul class="nav-links">
     <li><a href="#about">About</a></li>
     <li><a href="#menu">Menu</a></li>
     <li><a href="#specials">Specials</a></li>
@@ -813,12 +843,29 @@
     <li><a href="#visit">Visit</a></li>
     <li><a href="https://www.facebook.com/profile.php?id=61559692825648" target="_blank" class="nav-cta">Order Now</a></li>
   </ul>
+  <button class="nav-hamburger" id="hamburger" aria-label="Open menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
 </nav>
+
+<!-- MOBILE DRAWER -->
+<div class="nav-drawer" id="nav-drawer">
+  <ul>
+    <li><a href="#about" class="drawer-link">About</a></li>
+    <li><a href="#menu" class="drawer-link">Menu</a></li>
+    <li><a href="#specials" class="drawer-link">Specials</a></li>
+    <li><a href="#tiktok" class="drawer-link">Feed</a></li>
+    <li><a href="#visit" class="drawer-link">Visit</a></li>
+  </ul>
+  <a href="https://www.facebook.com/profile.php?id=61559692825648" target="_blank" class="drawer-cta">Order Now</a>
+</div>
 
 <!-- HERO -->
 <section class="hero">
   <div class="hero-left">
-    <div class="hero-eyebrow">♥ Est. 2024 · Philippines</div>
+    <div class="hero-eyebrow">♥&#xFE0E; Est. 2024 · Philippines</div>
     <h1 class="hero-title">Sweet <span class="pink">Life.</span><br>Good Food.</h1>
     <p class="hero-subtitle">Where every sip shimmers</p>
     <p class="hero-desc">A cozy café where warmth meets flavor. We craft every cup and plate with love — come in, sit down, and let us make your day a little sweeter.</p>
@@ -831,6 +878,7 @@
     <div class="hero-visual">
       <div class="hero-card-main">
         <div class="hero-card-photo"></div>
+        <div class="hero-card-overlay"></div>
         <div class="hero-coffee-art">
           <svg class="coffee-cup-svg" viewBox="0 0 200 230" fill="none" xmlns="http://www.w3.org/2000/svg">
             <ellipse cx="100" cy="200" rx="70" ry="13" fill="rgba(248,77,140,0.2)"/>
@@ -847,14 +895,14 @@
             <circle cx="42" cy="95" r="2" fill="rgba(255,255,255,0.5)"/>
             <circle cx="162" cy="100" r="1.5" fill="rgba(255,255,255,0.4)"/>
           </svg>
-          <div class="hero-card-caption">coffee · cakes · good vibes ♥</div>
+          <div class="hero-card-caption">coffee · cakes · good vibes ♥&#xFE0E;</div>
         </div>
       </div>
-      <div class="hero-badge"><div class="hero-badge-text">Open<br>Daily ♥</div></div>
+      <div class="hero-badge"><div class="hero-badge-text">Open<br>Daily ♥&#xFE0E;</div></div>
       <div class="hero-float">
         <div class="float-label">Menu Items</div>
         <div class="float-val">30<span style="font-size:20px;color:var(--pink)">+</span></div>
-        <div class="float-sub">crafted with ♥</div>
+        <div class="float-sub">crafted with ♥&#xFE0E;</div>
       </div>
     </div>
   </div>
@@ -863,22 +911,22 @@
 <!-- MARQUEE -->
 <div class="marquee-strip">
   <div class="marquee-inner">
-    <span class="marquee-item">Coffee <span class="marquee-dot">♥</span></span>
-    <span class="marquee-item">Cakes <span class="marquee-dot">♥</span></span>
-    <span class="marquee-item">Pasta <span class="marquee-dot">♥</span></span>
-    <span class="marquee-item">Waffles <span class="marquee-dot">♥</span></span>
-    <span class="marquee-item">Matcha <span class="marquee-dot">♥</span></span>
-    <span class="marquee-item">Milk Tea <span class="marquee-dot">♥</span></span>
-    <span class="marquee-item">Smoothies <span class="marquee-dot">♥</span></span>
-    <span class="marquee-item">Sweet Life. Good Food. <span class="marquee-dot">♥</span></span>
-    <span class="marquee-item">Coffee <span class="marquee-dot">♥</span></span>
-    <span class="marquee-item">Cakes <span class="marquee-dot">♥</span></span>
-    <span class="marquee-item">Pasta <span class="marquee-dot">♥</span></span>
-    <span class="marquee-item">Waffles <span class="marquee-dot">♥</span></span>
-    <span class="marquee-item">Matcha <span class="marquee-dot">♥</span></span>
-    <span class="marquee-item">Milk Tea <span class="marquee-dot">♥</span></span>
-    <span class="marquee-item">Smoothies <span class="marquee-dot">♥</span></span>
-    <span class="marquee-item">Sweet Life. Good Food. <span class="marquee-dot">♥</span></span>
+    <span class="marquee-item">Coffee <span class="marquee-dot">♥&#xFE0E;</span></span>
+    <span class="marquee-item">Cakes <span class="marquee-dot">♥&#xFE0E;</span></span>
+    <span class="marquee-item">Pasta <span class="marquee-dot">♥&#xFE0E;</span></span>
+    <span class="marquee-item">Waffles <span class="marquee-dot">♥&#xFE0E;</span></span>
+    <span class="marquee-item">Matcha <span class="marquee-dot">♥&#xFE0E;</span></span>
+    <span class="marquee-item">Milk Tea <span class="marquee-dot">♥&#xFE0E;</span></span>
+    <span class="marquee-item">Smoothies <span class="marquee-dot">♥&#xFE0E;</span></span>
+    <span class="marquee-item">Sweet Life. Good Food. <span class="marquee-dot">♥&#xFE0E;</span></span>
+    <span class="marquee-item">Coffee <span class="marquee-dot">♥&#xFE0E;</span></span>
+    <span class="marquee-item">Cakes <span class="marquee-dot">♥&#xFE0E;</span></span>
+    <span class="marquee-item">Pasta <span class="marquee-dot">♥&#xFE0E;</span></span>
+    <span class="marquee-item">Waffles <span class="marquee-dot">♥&#xFE0E;</span></span>
+    <span class="marquee-item">Matcha <span class="marquee-dot">♥&#xFE0E;</span></span>
+    <span class="marquee-item">Milk Tea <span class="marquee-dot">♥&#xFE0E;</span></span>
+    <span class="marquee-item">Smoothies <span class="marquee-dot">♥&#xFE0E;</span></span>
+    <span class="marquee-item">Sweet Life. Good Food. <span class="marquee-dot">♥&#xFE0E;</span></span>
   </div>
 </div>
 
@@ -900,7 +948,7 @@
     <div class="about-stats">
       <div><div class="stat-num">30+</div><div class="stat-label">Menu Items</div></div>
       <div><div class="stat-num">100%</div><div class="stat-label">Happy Reviews</div></div>
-      <div><div class="stat-num">♥</div><div class="stat-label">Good Vibes Only</div></div>
+      <div><div class="stat-num">♥&#xFE0E;</div><div class="stat-label">Good Vibes Only</div></div>
     </div>
   </div>
 </section>
@@ -924,51 +972,51 @@
     <div class="menu-category active" id="cat-coffee">
       <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=140&q=80" alt="Americano"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Café Americano</div><div class="menu-item-price">₱90</div></div><div class="menu-item-desc">Bold espresso diluted with hot water — clean, strong, and classic.</div></div></div>
       <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=140&q=80" alt="Cappuccino"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Cappuccino</div><div class="menu-item-price">₱110</div></div><div class="menu-item-desc">Equal parts espresso, steamed milk, and velvety foam.</div></div></div>
-      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1551030173-122aabc4489c?w=140&q=80" alt="Café Latte"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Café Latte</div><div class="menu-item-price">₱120</div></div><div class="menu-item-desc">Smooth espresso with lots of steamed milk and a light foam top.</div><div class="menu-item-tag">♥ Bestseller</div></div></div>
-      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1485808191679-5f86510bd9d4?w=140&q=80" alt="Caramel Macchiato"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Caramel Macchiato</div><div class="menu-item-price">₱135</div></div><div class="menu-item-desc">Vanilla-sweetened milk, espresso, drizzled with caramel.</div><div class="menu-item-tag">♥ Bestseller</div></div></div>
-      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=140&q=80" alt="Spanish Latte"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Spanish Latte</div><div class="menu-item-price">₱145</div></div><div class="menu-item-desc">Condensed milk blended with rich espresso and steamed milk.</div><div class="menu-item-tag">♥ Must Try</div></div></div>
+      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1551030173-122aabc4489c?w=140&q=80" alt="Café Latte"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Café Latte</div><div class="menu-item-price">₱120</div></div><div class="menu-item-desc">Smooth espresso with lots of steamed milk and a light foam top.</div><div class="menu-item-tag">♥&#xFE0E; Bestseller</div></div></div>
+      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1485808191679-5f86510bd9d4?w=140&q=80" alt="Caramel Macchiato"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Caramel Macchiato</div><div class="menu-item-price">₱135</div></div><div class="menu-item-desc">Vanilla-sweetened milk, espresso, drizzled with caramel.</div><div class="menu-item-tag">♥&#xFE0E; Bestseller</div></div></div>
+      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=140&q=80" alt="Spanish Latte"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Spanish Latte</div><div class="menu-item-price">₱145</div></div><div class="menu-item-desc">Condensed milk blended with rich espresso and steamed milk.</div><div class="menu-item-tag">♥&#xFE0E; Must Try</div></div></div>
       <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=140&q=80" alt="Brown Sugar Latte"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Brown Sugar Latte</div><div class="menu-item-price">₱150</div></div><div class="menu-item-desc">Espresso, steamed milk, and rich brown sugar syrup — warm and comforting.</div></div></div>
       <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=140&q=80" alt="Iced Coffee"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Iced Coffee</div><div class="menu-item-price">₱100</div></div><div class="menu-item-desc">Chilled brewed coffee over ice, refreshing and smooth.</div></div></div>
-      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1541167760496-1628856ab772?w=140&q=80" alt="Shimmer Signature Latte"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Shimmer Signature Latte</div><div class="menu-item-price">₱165</div></div><div class="menu-item-desc">Our house specialty — layered with golden flavors and love.</div><div class="menu-item-tag">♥ Shimmer Special</div></div></div>
+      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1541167760496-1628856ab772?w=140&q=80" alt="Shimmer Signature Latte"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Shimmer Signature Latte</div><div class="menu-item-price">₱165</div></div><div class="menu-item-desc">Our house specialty — layered with golden flavors and love.</div><div class="menu-item-tag">♥&#xFE0E; Shimmer Special</div></div></div>
     </div>
     <!-- NON-COFFEE -->
     <div class="menu-category" id="cat-noncoffee">
-      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1515823662972-da6a2e4d3002?w=140&q=80" alt="Matcha Latte"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Matcha Latte</div><div class="menu-item-price">₱145</div></div><div class="menu-item-desc">Premium matcha whisked with steamed oat or whole milk.</div><div class="menu-item-tag">♥ Bestseller</div></div></div>
+      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1515823662972-da6a2e4d3002?w=140&q=80" alt="Matcha Latte"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Matcha Latte</div><div class="menu-item-price">₱145</div></div><div class="menu-item-desc">Premium matcha whisked with steamed oat or whole milk.</div><div class="menu-item-tag">♥&#xFE0E; Bestseller</div></div></div>
       <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1572490122747-3e9b88d57ede?w=140&q=80" alt="Chocolate Latte"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Chocolate Latte</div><div class="menu-item-price">₱130</div></div><div class="menu-item-desc">Rich cocoa blended smooth with steamed whole milk.</div></div></div>
-      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=140&q=80" alt="Strawberry Milk"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Strawberry Milk</div><div class="menu-item-price">₱120</div></div><div class="menu-item-desc">Fresh strawberry syrup stirred into cold creamy milk.</div><div class="menu-item-tag">♥ Fan Fave</div></div></div>
+      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?w=140&q=80" alt="Strawberry Milk"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Strawberry Milk</div><div class="menu-item-price">₱120</div></div><div class="menu-item-desc">Fresh strawberry syrup stirred into cold creamy milk.</div><div class="menu-item-tag">♥&#xFE0E; Fan Fave</div></div></div>
       <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1582498869012-57571b3b05ea?w=140&q=80" alt="Taro Latte"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Taro Latte</div><div class="menu-item-price">₱145</div></div><div class="menu-item-desc">Earthy, nutty taro blended with velvety steamed milk.</div></div></div>
       <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=140&q=80" alt="Wintermelon Drink"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Wintermelon Drink</div><div class="menu-item-price">₱110</div></div><div class="menu-item-desc">Subtly sweet wintermelon tea served chilled over ice.</div></div></div>
       <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1505252585461-04db1eb84625?w=140&q=80" alt="Fresh Fruit Smoothie"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Fresh Fruit Smoothie</div><div class="menu-item-price">₱155</div></div><div class="menu-item-desc">Blended daily-fresh fruits — mango, strawberry, or mixed berry.</div></div></div>
     </div>
     <!-- FOOD -->
     <div class="menu-category" id="cat-food">
-      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1567234669003-dce7a7a88821?w=140&q=80" alt="Club Sandwich"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Club Sandwich</div><div class="menu-item-price">₱175</div></div><div class="menu-item-desc">Triple-layered toasted bread with chicken, egg, lettuce, and tomato.</div><div class="menu-item-tag">♥ Bestseller</div></div></div>
+      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1567234669003-dce7a7a88821?w=140&q=80" alt="Club Sandwich"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Club Sandwich</div><div class="menu-item-price">₱175</div></div><div class="menu-item-desc">Triple-layered toasted bread with chicken, egg, lettuce, and tomato.</div><div class="menu-item-tag">♥&#xFE0E; Bestseller</div></div></div>
       <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=140&q=80" alt="Pasta Aglio e Olio"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Pasta Aglio e Olio</div><div class="menu-item-price">₱195</div></div><div class="menu-item-desc">Al dente pasta tossed in garlic-infused olive oil, chili flakes, parsley.</div></div></div>
-      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=140&q=80" alt="Cream of Mushroom Pasta"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Cream of Mushroom Pasta</div><div class="menu-item-price">₱215</div></div><div class="menu-item-desc">Earthy mushrooms in a rich, silky cream sauce over fettuccine.</div><div class="menu-item-tag">♥ Must Try</div></div></div>
-      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1533089860892-a7c6f10a081a?w=140&q=80" alt="Breakfast Platter"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Breakfast Platter</div><div class="menu-item-price">₱230</div></div><div class="menu-item-desc">Eggs, bacon, sausage, buttered toast, and home fries.</div><div class="menu-item-tag">♥ Shimmer Special</div></div></div>
+      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=140&q=80" alt="Cream of Mushroom Pasta"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Cream of Mushroom Pasta</div><div class="menu-item-price">₱215</div></div><div class="menu-item-desc">Earthy mushrooms in a rich, silky cream sauce over fettuccine.</div><div class="menu-item-tag">♥&#xFE0E; Must Try</div></div></div>
+      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1533089860892-a7c6f10a081a?w=140&q=80" alt="Breakfast Platter"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Breakfast Platter</div><div class="menu-item-price">₱230</div></div><div class="menu-item-desc">Eggs, bacon, sausage, buttered toast, and home fries.</div><div class="menu-item-tag">♥&#xFE0E; Shimmer Special</div></div></div>
       <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1528736235302-52922df5c122?w=140&q=80" alt="Chicken Pesto Sandwich"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Chicken Pesto Sandwich</div><div class="menu-item-price">₱185</div></div><div class="menu-item-desc">Grilled chicken, basil pesto, mozzarella on ciabatta.</div></div></div>
       <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=140&q=80" alt="Garden Salad Bowl"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Garden Salad Bowl</div><div class="menu-item-price">₱165</div></div><div class="menu-item-desc">Mixed greens, cherry tomatoes, cucumber, croutons, house vinaigrette.</div></div></div>
     </div>
     <!-- DESSERTS -->
     <div class="menu-category" id="cat-desserts">
-      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=140&q=80" alt="Belgian Waffle"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Classic Belgian Waffle</div><div class="menu-item-price">₱165</div></div><div class="menu-item-desc">Golden, crispy waffles served with butter, syrup, and whipped cream.</div><div class="menu-item-tag">♥ Bestseller</div></div></div>
-      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=140&q=80" alt="Chocolate Lava Cake"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Chocolate Lava Cake</div><div class="menu-item-price">₱185</div></div><div class="menu-item-desc">Warm decadent cake with a gooey molten chocolate center.</div><div class="menu-item-tag">♥ Must Try</div></div></div>
-      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=140&q=80" alt="Matcha Cheesecake"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Matcha Cheesecake</div><div class="menu-item-price">₱155</div></div><div class="menu-item-desc">No-bake Japanese-style cheesecake with matcha swirl.</div><div class="menu-item-tag">♥ Shimmer Special</div></div></div>
+      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=140&q=80" alt="Belgian Waffle"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Classic Belgian Waffle</div><div class="menu-item-price">₱165</div></div><div class="menu-item-desc">Golden, crispy waffles served with butter, syrup, and whipped cream.</div><div class="menu-item-tag">♥&#xFE0E; Bestseller</div></div></div>
+      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=140&q=80" alt="Chocolate Lava Cake"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Chocolate Lava Cake</div><div class="menu-item-price">₱185</div></div><div class="menu-item-desc">Warm decadent cake with a gooey molten chocolate center.</div><div class="menu-item-tag">♥&#xFE0E; Must Try</div></div></div>
+      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=140&q=80" alt="Matcha Cheesecake"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Matcha Cheesecake</div><div class="menu-item-price">₱155</div></div><div class="menu-item-desc">No-bake Japanese-style cheesecake with matcha swirl.</div><div class="menu-item-tag">♥&#xFE0E; Shimmer Special</div></div></div>
       <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1488477181228-c84def703571?w=140&q=80" alt="Strawberry Shortcake"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Strawberry Shortcake</div><div class="menu-item-price">₱150</div></div><div class="menu-item-desc">Fluffy sponge, fresh strawberries, whipped cream — light and airy.</div></div></div>
-      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1598373182133-52452f7691ef?w=140&q=80" alt="Croffles"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Croffles</div><div class="menu-item-price">₱120</div></div><div class="menu-item-desc">Croissant-waffle hybrids, crispy and buttery. Choose your topping.</div><div class="menu-item-tag">♥ Fan Fave</div></div></div>
+      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1598373182133-52452f7691ef?w=140&q=80" alt="Croffles"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Croffles</div><div class="menu-item-price">₱120</div></div><div class="menu-item-desc">Croissant-waffle hybrids, crispy and buttery. Choose your topping.</div><div class="menu-item-tag">♥&#xFE0E; Fan Fave</div></div></div>
       <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=140&q=80" alt="Tiramisu"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Tiramisu</div><div class="menu-item-price">₱175</div></div><div class="menu-item-desc">Classic Italian dessert, espresso-soaked ladyfingers with mascarpone.</div></div></div>
     </div>
     <!-- MILK TEA -->
     <div class="menu-category" id="cat-milktea">
-      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1558857563-b371033873b8?w=140&q=80" alt="Classic Milk Tea"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Classic Milk Tea</div><div class="menu-item-price">₱95</div></div><div class="menu-item-desc">Hong Kong-style black tea with creamy milk. Pearls optional.</div><div class="menu-item-tag">♥ Bestseller</div></div></div>
+      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1558857563-b371033873b8?w=140&q=80" alt="Classic Milk Tea"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Classic Milk Tea</div><div class="menu-item-price">₱95</div></div><div class="menu-item-desc">Hong Kong-style black tea with creamy milk. Pearls optional.</div><div class="menu-item-tag">♥&#xFE0E; Bestseller</div></div></div>
       <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=140&q=80" alt="Hokkaido Milk Tea"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Hokkaido Milk Tea</div><div class="menu-item-price">₱115</div></div><div class="menu-item-desc">Rich, velvety Japanese-inspired milk tea with caramel undertones.</div></div></div>
-      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1589396575653-c09c794ff6a6?w=140&q=80" alt="Taro Milk Tea"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Taro Milk Tea</div><div class="menu-item-price">₱115</div></div><div class="menu-item-desc">Purple taro blended with milk tea — sweet, earthy, and gorgeous.</div><div class="menu-item-tag">♥ Fan Fave</div></div></div>
-      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=140&q=80" alt="Brown Sugar Milk Tea"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Brown Sugar Milk Tea</div><div class="menu-item-price">₱125</div></div><div class="menu-item-desc">Tiger-striped boba pearls with caramelized brown sugar and milk.</div><div class="menu-item-tag">♥ Must Try</div></div></div>
+      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1589396575653-c09c794ff6a6?w=140&q=80" alt="Taro Milk Tea"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Taro Milk Tea</div><div class="menu-item-price">₱115</div></div><div class="menu-item-desc">Purple taro blended with milk tea — sweet, earthy, and gorgeous.</div><div class="menu-item-tag">♥&#xFE0E; Fan Fave</div></div></div>
+      <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=140&q=80" alt="Brown Sugar Milk Tea"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Brown Sugar Milk Tea</div><div class="menu-item-price">₱125</div></div><div class="menu-item-desc">Tiger-striped boba pearls with caramelized brown sugar and milk.</div><div class="menu-item-tag">♥&#xFE0E; Must Try</div></div></div>
       <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1515823662972-da6a2e4d3002?w=140&q=80" alt="Matcha Milk Tea"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Matcha Milk Tea</div><div class="menu-item-price">₱120</div></div><div class="menu-item-desc">Premium green tea matcha blended with silky milk and pearls.</div></div></div>
       <div class="menu-item"><div class="menu-item-img"><img src="https://images.unsplash.com/photo-1544145945-f90425340c7e?w=140&q=80" alt="Wintermelon Milk Tea"></div><div class="menu-item-body"><div class="menu-item-header"><div class="menu-item-name">Wintermelon Milk Tea</div><div class="menu-item-price">₱110</div></div><div class="menu-item-desc">Floral, refreshing wintermelon with creamy milk. Add pearls for ₱20.</div></div></div>
     </div>
   </div>
-  <p class="menu-note">Prices may vary. Ask our staff for today's specials ♥</p>
+  <p class="menu-note">Prices may vary. Ask our staff for today's specials ♥&#xFE0E;</p>
 </section>
 
 <!-- SPECIALS -->
@@ -1095,7 +1143,7 @@
         <span class="footer-logo-shimmer">Shimmer</span>
         <span class="footer-logo-cafe">CAFÉ</span>
       </div>
-      <p class="footer-tagline">Sweet Life. Good Food. ♥</p>
+      <p class="footer-tagline">Sweet Life. Good Food. ♥&#xFE0E;</p>
       <div class="footer-social-row">
         <a href="https://www.facebook.com/profile.php?id=61559692825648" target="_blank" class="footer-social-btn" title="Facebook">f</a>
         <a href="https://www.instagram.com/shimmercafe" target="_blank" class="footer-social-btn" title="Instagram"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/></svg></a>
@@ -1133,7 +1181,7 @@
   </div>
   <div class="footer-bottom">
     <div class="footer-copy">© 2024 <span class="pink">Shimmer Café</span>. All rights reserved.</div>
-    <div class="footer-copy">Made with <span class="pink">♥</span> and good coffee</div>
+    <div class="footer-copy">Made with <span class="pink">♥&#xFE0E;</span> and good coffee</div>
   </div>
 </footer>
 
@@ -1148,6 +1196,23 @@
   window.addEventListener('scroll', () => {
     document.getElementById('navbar').style.boxShadow =
       window.scrollY > 40 ? '0 4px 24px rgba(248,77,140,0.1)' : 'none';
+  });
+
+  // Hamburger menu toggle
+  const hamburger = document.getElementById('hamburger');
+  const drawer = document.getElementById('nav-drawer');
+
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('open');
+    drawer.classList.toggle('open');
+  });
+
+  // Close drawer when a link is clicked
+  document.querySelectorAll('.drawer-link, .drawer-cta').forEach(link => {
+    link.addEventListener('click', () => {
+      hamburger.classList.remove('open');
+      drawer.classList.remove('open');
+    });
   });
 
   const observer = new IntersectionObserver((entries) => {
@@ -1166,16 +1231,6 @@
     el.style.cssText += `opacity:0;transform:translateY(22px);transition:opacity 0.55s ${i*0.05}s ease,transform 0.55s ${i*0.05}s ease`;
     observer.observe(el);
   });
-
-const hamburger = document.getElementById('hamburger');
-const navLinks = document.getElementById('nav-links');
-
-hamburger.addEventListener('click', () => {
-  navLinks.classList.toggle('active');
-  
-  // Optional: Animate hamburger to an 'X'
-  hamburger.classList.toggle('toggle');
-});
 </script>
 </body>
 </html>
